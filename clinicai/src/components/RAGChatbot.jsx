@@ -15,18 +15,13 @@ export default function RAGChatbot({ patientId }) {
     scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Sync mic-transcribed text to the input field
-  useEffect(() => {
-    if (transcript) setInput(transcript);
-  }, [transcript]);
-
   const handleSend = async (e) => {
     if (e) e.preventDefault();
-    if (!input.trim()) return;
+    const currentInput = input.trim() || transcript.trim();
+    if (!currentInput) return;
 
-    const userMessage = { role: 'user', content: input };
+    const userMessage = { role: 'user', content: currentInput };
     setMessages(prev => [...prev, userMessage]);
-    const currentInput = input;
     setInput('');
     setIsLoading(true);
 
@@ -37,9 +32,10 @@ export default function RAGChatbot({ patientId }) {
         body: JSON.stringify({ patientId, question: currentInput })
       });
       const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Query failed');
       setMessages(prev => [...prev, { role: 'assistant', content: data.answer }]);
     } catch (error) {
-      setMessages(prev => [...prev, { role: 'assistant', content: 'SYSTEM ERROR: Intelligence bypass failed.' }]);
+      setMessages(prev => [...prev, { role: 'assistant', content: `Query failed: ${error.message}` }]);
     } finally {
       setIsLoading(false);
     }
@@ -110,7 +106,7 @@ export default function RAGChatbot({ patientId }) {
         <form onSubmit={handleSend} className="flex items-center space-x-3">
           <input
             type="text"
-            value={input}
+            value={input || transcript}
             onChange={(e) => setInput(e.target.value)}
             placeholder={isRecording ? "LISTENING..." : "ENTER COMMAND..."}
             className="flex-1 bg-transparent border-none text-[10px] font-black uppercase tracking-widest focus:ring-0 outline-none placeholder:text-gray-300"
@@ -135,7 +131,7 @@ export default function RAGChatbot({ patientId }) {
             
             <button
               type="submit"
-              disabled={isRecording || !input.trim()}
+              disabled={isRecording || !(input.trim() || transcript.trim())}
               className="bg-black text-white px-6 py-2 text-[10px] font-black uppercase tracking-widest hover:bg-gray-800 disabled:bg-gray-200 disabled:text-gray-400 transition-colors"
             >
               Execute

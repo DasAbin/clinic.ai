@@ -7,6 +7,7 @@ export default function useVoiceRecorder() {
   
   const mediaRecorderRef = useRef(null);
   const chunksRef = useRef([]);
+  const recordingRef = useRef(false);
   const recognitionRef = useRef(null);
 
   useEffect(() => {
@@ -29,7 +30,7 @@ export default function useVoiceRecorder() {
 
       recognitionRef.current.onend = () => {
         // Restart if we're still in recording mode (prevents timeout on long pauses)
-        if (isRecording) {
+        if (recordingRef.current) {
           try {
             recognitionRef.current.start();
           } catch (e) { /* already started */ }
@@ -52,12 +53,13 @@ export default function useVoiceRecorder() {
       };
       
       mediaRecorderRef.current.onstop = () => {
-        const blob = new Blob(chunksRef.current, { type: 'audio/wav' });
+        const blob = new Blob(chunksRef.current, { type: mediaRecorderRef.current.mimeType });
         setAudioBlob(blob);
       };
       
       mediaRecorderRef.current.start();
       recognitionRef.current?.start();
+      recordingRef.current = true;
       setIsRecording(true);
     } catch (err) {
       console.error('Recording error:', err);
@@ -65,6 +67,7 @@ export default function useVoiceRecorder() {
   };
 
   const stopRecording = () => {
+    recordingRef.current = false;
     mediaRecorderRef.current?.stop();
     recognitionRef.current?.stop();
     setIsRecording(false);

@@ -7,13 +7,16 @@ if (!supabaseUrl || !supabaseAnonKey) {
   console.warn("⚠️ Clinical DB Credentials Missing. API routes will fail.");
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+function getSupabase() {
+  if (!supabaseUrl || !supabaseAnonKey) throw new Error('Supabase is not configured');
+  return createClient(supabaseUrl, supabaseAnonKey);
+}
 
 export async function saveSession(patientId, sessionData) {
   const timestamp = new Date().toISOString();
   console.log(`[ClinicAI | DB] - Indexing new session for Patient: ${patientId} at ${timestamp}`);
   
-  const { data, error } = await supabase
+  const { data, error } = await getSupabase()
     .from('sessions')
     .insert([
       {
@@ -36,7 +39,7 @@ export async function saveSession(patientId, sessionData) {
 }
 
 export async function getSessions(patientId) {
-  const { data, error } = await supabase
+  const { data, error } = await getSupabase()
     .from('sessions')
     .select('*')
     .eq('patient_id', patientId)
@@ -47,7 +50,7 @@ export async function getSessions(patientId) {
 }
 
 export async function getPatientProfile(patientId) {
-  const { data, error } = await supabase
+  const { data, error } = await getSupabase()
     .from('patients')
     .select('*')
     .eq('patient_id', patientId)
@@ -62,7 +65,7 @@ export async function getPatientProfile(patientId) {
 }
 
 export async function createPatient(patientData) {
-  const { data, error } = await supabase
+  const { data, error } = await getSupabase()
     .from('patients')
     .insert([patientData])
     .select()

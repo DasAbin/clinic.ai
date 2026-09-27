@@ -24,7 +24,7 @@ export default function PatientReportPage() {
           throw new Error('Session not found');
         }
         const data = await response.json();
-        setSessionData(data);
+        setSessionData({ ...data, ...data.extracted_data, patient_id: data.patient_id, created_at: data.created_at });
       } catch (err) {
         setError(err.message || 'Failed to load report');
       } finally {

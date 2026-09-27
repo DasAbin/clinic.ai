@@ -1,7 +1,10 @@
 import Groq from "groq-sdk";
 import fs from "fs";
 
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+function getGroq() {
+  if (!process.env.GROQ_API_KEY) throw new Error('Groq is not configured');
+  return new Groq({ apiKey: process.env.GROQ_API_KEY });
+}
 
 const SCHEMA = {
   type: "object",
@@ -44,7 +47,7 @@ const SCHEMA = {
 };
 
 export async function extractStructuredGroq(transcript, medicalContext = "", historyContext = "", patientProfile = null) {
-  const completion = await groq.chat.completions.create({
+  const completion = await getGroq().chat.completions.create({
     messages: [
       {
         role: "system",
@@ -95,7 +98,7 @@ RESILIENCE RULES:
 }
 
 export async function queryRAGGroq(patientId, query, historyContext) {
-  const completion = await groq.chat.completions.create({
+  const completion = await getGroq().chat.completions.create({
     messages: [
       {
         role: "system",
@@ -121,7 +124,7 @@ export async function queryRAGGroq(patientId, query, historyContext) {
 
 export async function transcribeGroq(filePath) {
   try {
-    const transcription = await groq.audio.transcriptions.create({
+    const transcription = await getGroq().audio.transcriptions.create({
       file: fs.createReadStream(filePath),
       model: "whisper-large-v3-turbo", 
       prompt: "Cetirizine, Paracetamol, Amoxicillin, Amlodipine, Metformin, Atorvastatin, Omeprazole, Azithromycin, Cough Syrup, Saturation, Clinical Prescription, Diagnosis, Symptoms.", // Medical nudge

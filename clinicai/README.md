@@ -1,40 +1,41 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/pages/api-reference/create-next-app).
+# ClinicAI
 
-## Getting Started
+Prototype clinical-consultation documentation app. It records a consultation, transcribes speech, retrieves medical-reference snippets and past patient records, generates structured clinical data for clinician review, and stores a revised session. **Not a validated diagnostic or prescribing device. Do not use with real patient data without consent, security review, and clinical validation.**
 
-First, run the development server:
+## Run locally
 
-```bash
+Requires Node.js 20.9 or newer. From `clinicai/`:
+
+```sh
+npm ci
+npm run lint
+npm run build
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Create `clinicai/.env.local` (never commit it) with these values provided by your own accounts:
 
-You can start editing the page by modifying `pages/index.js`. The page auto-updates as you edit the file.
+```dotenv
+GROQ_API_KEY=
+GEMINI_API_KEY=
+PINECONE_API_KEY=
+PINECONE_HOST=
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+```
 
-[API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.js`.
+The application assumes an existing Pinecone index with 768-dimensional Gemini embeddings and namespace `clinical-wisdom`, and Supabase tables `patients` and `sessions`. It does **not** create either resource or seed production medical references automatically. Missing credentials allow the UI to render but prevent the clinical pipeline from running. Do not put a Supabase service-role key into `NEXT_PUBLIC_` variables or expose it to the browser. The included `mock/` JSON is sample data, not evidence of model accuracy.
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) instead of React pages.
+## Workflow
 
-This project uses [`next/font`](https://nextjs.org/docs/pages/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. Register a patient or enter an existing patient ID.
+2. On the consultation page, record audio. The browser records its supported container (usually WebM or Ogg); Groq Whisper Large v3 Turbo transcribes it.
+3. Gemini `gemini-embedding-001` embeds the transcript. Pinecone returns the nearest three knowledge-base entries. Supabase supplies history and the patient profile. Groq-hosted Llama 3.3 70B generates a JSON clinical summary, medication list, suggestions, flags, and follow-up text.
+4. A clinician must check and edit the output before archiving. The record is saved in Supabase and can be exported as a PDF. The assistant endpoint separately embeds a question and uses the same history and reference retrieval before Groq generates its answer.
 
-## Learn More
+### Data and safety limitations
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn-pages-router) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/pages/building-your-application/deploying) for more details.
+- No authentication, clinician authorization, patient consent flow, de-identification, audit trail, or access control is implemented here. The public report URL and patient-ID lookup must not be deployed with real patient records without access controls and reviewed RLS policies. Never use a service-role key in a public report endpoint.
+- Medication and allergy checks are prompt-based, not deterministic validation. Suggested alternatives are not approved prescriptions. The apparent confidence label is a model output, not a calibrated probability.
+- The small hand-seeded knowledge base has no provenance guarantees; retrieval is top-3 over a single embedding of the entire transcript. References and generated answers need independent clinical review.
+- Whisper is configured for English in the code. Hindi-English and other code-mixed consultations have not been measured for accuracy. Supabase schema, third-party model API responses, and the whole recording-to-save workflow require integration tests with safe synthetic data in a configured environment.

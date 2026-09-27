@@ -1,6 +1,9 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+function getGemini() {
+  if (!process.env.GEMINI_API_KEY) throw new Error('Gemini is not configured');
+  return new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+}
 
 const SCHEMA = {
   type: "object",
@@ -42,7 +45,7 @@ const SCHEMA = {
 };
 
 export async function getEmbeddings(text) {
-  const model = genAI.getGenerativeModel({ model: "gemini-embedding-001" });
+  const model = getGemini().getGenerativeModel({ model: "gemini-embedding-001" });
   const result = await model.embedContent({
     content: { parts: [{ text }] },
     taskType: "RETRIEVAL_QUERY",

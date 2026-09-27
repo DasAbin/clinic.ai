@@ -53,7 +53,7 @@ export default function RegisterPage() {
         router.push(`/consult?patientId=${result.patient_id}`);
       }
     } catch (error) {
-      alert('Registration failed. Check console.');
+      alert(`Registration failed: ${error.message}`);
     } finally {
       setIsSubmitting(false);
     }

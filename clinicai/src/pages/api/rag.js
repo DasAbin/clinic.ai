@@ -6,7 +6,10 @@ import { queryMedicalKB } from '@/services/pinecone';
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ message: 'Method not allowed' });
 
-  const { patientId, question } = req.body;
+  const { patientId, question } = req.body || {};
+  if (typeof patientId !== 'string' || !patientId.trim() || typeof question !== 'string' || !question.trim()) {
+    return res.status(400).json({ message: 'patientId and question are required' });
+  }
 
   try {
     // 1. Fetch History from Supabase

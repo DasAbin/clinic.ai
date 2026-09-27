@@ -6,7 +6,10 @@ import { getSessions, getPatientProfile } from '@/services/supabase';
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ message: 'Method not allowed' });
 
-  const { transcript, patientId } = req.body;
+  const { transcript, patientId } = req.body || {};
+  if (typeof transcript !== 'string' || !transcript.trim() || typeof patientId !== 'string' || !patientId.trim()) {
+    return res.status(400).json({ message: 'A transcript and patientId are required' });
+  }
 
   try {
     console.log(`[ClinicAI | AI] - Starting extraction pipeline for Patient: ${patientId}`);

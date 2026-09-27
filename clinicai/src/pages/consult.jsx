@@ -14,9 +14,9 @@ import { generatePatientPDF } from '@/utils/generatePatientPDF';
 export default function ConsultPage() {
   const router = useRouter();
   const { patientId } = router.query;
-  
+
   const { isRecording, transcript, audioBlob, startRecording, stopRecording } = useVoiceRecorder();
-  
+
   const [liveTranscript, setLiveTranscript] = useState('');
   const [structuredData, setStructuredData] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -32,29 +32,29 @@ export default function ConsultPage() {
   }, [patientId]);
 
   useEffect(() => {
-    if (transcript) setLiveTranscript(transcript);
-  }, [transcript]);
-
-  useEffect(() => {
-    if (audioBlob && !isRecording) {
-      handleProcessAudio(audioBlob);
-    }
-  }, [audioBlob, isRecording]);
-
-  const handleProcessAudio = async (blob) => {
-    setIsProcessing(true);
-    try {
-      const transResult = await transcribeAudio(blob);
-      const finalTranscript = transResult.transcript || liveTranscript;
-      setLiveTranscript(finalTranscript);
-      const clinicalData = await extractStructured(finalTranscript, patientId || 'P12345');
-      setStructuredData(clinicalData);
-    } catch (error) {
-      console.error('AI Pipeline Error:', error);
-    } finally {
-      setIsProcessing(false);
-    }
-  };
+    if (!audioBlob || isRecording) return;
+    let active = true;
+    const processAudio = async () => {
+      setIsProcessing(true);
+      try {
+        const transResult = await transcribeAudio(audioBlob);
+        const finalTranscript = transResult.transcript;
+        if (!finalTranscript?.trim()) throw new Error('No speech was transcribed');
+        const clinicalData = await extractStructured(finalTranscript, patientId || 'P12345');
+        if (active) {
+          setLiveTranscript(finalTranscript);
+          setStructuredData(clinicalData);
+        }
+      } catch (error) {
+        console.error('AI Pipeline Error:', error);
+        if (active) alert(`Consultation processing failed: ${error.message}`);
+      } finally {
+        if (active) setIsProcessing(false);
+      }
+    };
+    processAudio();
+    return () => { active = false; };
+  }, [audioBlob, isRecording, patientId]);
 
   const handleUpdateData = (newData) => {
     setStructuredData(newData);
@@ -118,10 +118,10 @@ export default function ConsultPage() {
             <p className="text-sm font-black text-black">CASE: {patientId || 'P12345'} — {patientProfile?.name || 'LOADING...'}</p>
           </div>
         </div>
-        
+
         <div className="flex items-center space-x-4">
           {isSaved && (
-            <button 
+            <button
               onClick={() => generatePatientPDF(structuredData, patientId || 'P12345', patientProfile)}
               className="px-6 py-2 bg-black text-white text-[12px] font-black uppercase tracking-widest hover:bg-gray-900 transition-all font-sans"
             >
@@ -129,7 +129,7 @@ export default function ConsultPage() {
             </button>
           )}
           {structuredData && (
-            <button 
+            <button
               onClick={() => setIsEditingData(!isEditingData)}
               className={`px-6 py-2 text-[12px] font-black uppercase tracking-widest border-[0.5px] border-black transition-all ${
                 isEditingData ? 'bg-black text-white' : 'bg-white text-black hover:bg-gray-100'
@@ -138,7 +138,7 @@ export default function ConsultPage() {
               {isEditingData ? 'Finish Revision' : 'Enter Revision'}
             </button>
           )}
-          <button 
+          <button
             onClick={handleSave}
             disabled={!structuredData || isSaved}
             className="px-6 py-2 bg-black text-white text-[12px] font-black uppercase tracking-widest hover:bg-gray-900 transition-all disabled:bg-gray-200 disabled:text-gray-400"
@@ -167,14 +167,14 @@ export default function ConsultPage() {
               <h2 className="text-4xl font-black tracking-tighter uppercase">Intake Registry</h2>
               <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Live Document</span>
             </div>
-            
-            <ConsultationView 
-              isRecording={isRecording} 
-              startRecording={startRecording} 
-              stopRecording={stopRecording} 
-              transcript={liveTranscript} 
+
+            <ConsultationView
+              isRecording={isRecording}
+              startRecording={startRecording}
+              stopRecording={stopRecording}
+              transcript={liveTranscript || transcript}
             />
-            
+
             {isProcessing && (
               <div className="flex items-center space-x-3 text-[10px] font-black uppercase tracking-[0.5em] text-black">
                 <span className="animate-pulse">Analyzing Neural Stream...</span>
@@ -195,15 +195,15 @@ export default function ConsultPage() {
                    <span className="text-[10px] font-black text-black uppercase tracking-widest">Confidence Registry</span>
                 </div>
               </div>
-              
-              <StructuredOutput 
-                data={{...structuredData, onAddSuggestion: handleAddSuggestion}} 
+
+              <StructuredOutput
+                data={{...structuredData, onAddSuggestion: handleAddSuggestion}}
                 isEditing={isEditingData}
                 onUpdate={handleUpdateData}
                 onRemoveMed={handleRemoveMed}
                 onAddMed={handleAddMed}
               />
-              
+
               <FlagsPanel flags={structuredData.flags} />
             </section>
           )}

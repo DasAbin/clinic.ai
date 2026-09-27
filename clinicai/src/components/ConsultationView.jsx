@@ -42,7 +42,7 @@ export default function ConsultationView({ transcript, isRecording, startRecordi
                   className="w-2 bg-black animate-[bounce_1s_infinite]" 
                   style={{ 
                     animationDelay: `${i * 0.1}s`,
-                    height: `${20 + Math.random() * 80}%`
+                    height: `${25 + (i * 37) % 70}%`
                   }}
                 ></div>
               ))}

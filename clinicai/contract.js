@@ -6,13 +6,15 @@
 
 export async function transcribeAudio(audioBlob) {
   const formData = new FormData();
-  formData.append('file', audioBlob);
+  formData.append('file', audioBlob, audioBlob.type.includes('webm') ? 'consultation.webm' : audioBlob.type.includes('ogg') ? 'consultation.ogg' : 'consultation.wav');
 
   const response = await fetch('/api/transcribe', {
     method: 'POST',
     body: formData
   });
-  return await response.json();
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || data.error || `Request failed (${response.status})`);
+  return data;
 }
 
 export async function extractStructured(transcript, patientId) {
@@ -21,21 +23,27 @@ export async function extractStructured(transcript, patientId) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ transcript, patientId })
   });
-  return await response.json();
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || data.error || `Request failed (${response.status})`);
+  return data;
 }
 
 export async function saveSession(patientId, sessionData) {
-  const response = await fetch(`/api/sessions?patientId=${patientId}`, {
+  const response = await fetch(`/api/sessions?patientId=${encodeURIComponent(patientId)}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ sessionData })
   });
-  return await response.json();
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || data.error || `Request failed (${response.status})`);
+  return data;
 }
 
 export async function getSessions(patientId) {
-  const response = await fetch(`/api/sessions?patientId=${patientId}`);
-  return await response.json();
+  const response = await fetch(`/api/sessions?patientId=${encodeURIComponent(patientId)}`);
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || data.error || `Request failed (${response.status})`);
+  return data;
 }
 
 export async function queryRAG(patientId, question) {
@@ -49,9 +57,11 @@ export async function queryRAG(patientId, question) {
 }
 
 export async function getPatientProfile(patientId) {
-  const response = await fetch(`/api/patients?patientId=${patientId}`);
-  if (!response.ok) return null;
-  return await response.json();
+  const response = await fetch(`/api/patients?patientId=${encodeURIComponent(patientId)}`);
+  if (response.status === 404) return null;
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || data.error || `Request failed (${response.status})`);
+  return data;
 }
 
 export async function registerPatient(patientData) {
@@ -60,5 +70,7 @@ export async function registerPatient(patientData) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(patientData)
   });
-  return await response.json();
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || data.error || `Request failed (${response.status})`);
+  return data;
 }

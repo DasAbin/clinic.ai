@@ -12,18 +12,20 @@ export default function HistoryPage() {
   const [sessions, setSessions] = useState([]);
   const [patientProfile, setPatientProfile] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
 
   useEffect(() => {
     if (patientId) {
       // Fetch History
       fetch(`/api/sessions?patientId=${patientId}`)
-        .then(res => res.json())
+        .then(res => { if (!res.ok) throw new Error('Could not load sessions'); return res.json(); })
         .then(data => {
           setSessions(data);
           setIsLoading(false);
         })
         .catch(err => {
-          console.error("Error fetching history:", err);
+          console.error('Error fetching history:', err);
+          setLoadError(err.message);
           setIsLoading(false);
         });
 
@@ -86,6 +88,8 @@ export default function HistoryPage() {
               <div className="flex justify-center p-24 animate-pulse">
                 <span className="text-[10px] font-black uppercase tracking-[0.5em]">Synchronizing Records...</span>
               </div>
+            ) : loadError ? (
+              <p role="alert">{loadError}</p>
             ) : (
               <div className="editorial-content">
                 <PatientHistory sessions={sessions} />
