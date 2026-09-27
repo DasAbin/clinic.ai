@@ -7,22 +7,12 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const PINECONE_API_KEY = process.env.PINECONE_API_KEY;
 const PINECONE_HOST = process.env.PINECONE_HOST;
 
+// Demonstration-only references. These are not sourced treatment guidelines.
+// Never label generated or hand-written notes as ICMR or StatPearls.
 const MEDICAL_DATA = [
-  {
-    id: "icmr_fever_001",
-    text: "Fever Standard Treatment Workflow (ICMR): CORE TEMP > 38.0 C. RED FLAGS: Altered sensorium, hypotension, respiratory distress, petechial rash. INVESTIGATIONS: CBC, NS1/IgM for Dengue (if >3 days), Widal for Typhoid, Peripheral Smear for Malaria.",
-    metadata: { source: "ICMR STW 2024", condition: "Fever", severity: "High" }
-  },
-  {
-    id: "icmr_cough_001",
-    text: "Cough Management (ICMR): If > 2 weeks, investigate for Pulmonary Tuberculosis. WET COUGH: Use Mucolytics (Guaifenesin). DRY COUGH: Rule out Asthma, GERD. Rule out Red Flags like Hemoptysis.",
-    metadata: { source: "ICMR STW 2024", condition: "Cough", severity: "Medium" }
-  },
-  {
-    id: "icmr_headache_001",
-    text: "Headache Red Flags (ICMR): Fever with neck stiffness, sudden onset (thunderclap), personality change, focal neurologic signs. Differential: Tension vs Migraine vs Meningitis.",
-    metadata: { source: "ICMR STW 2024", condition: "Headache", severity: "Life-Threatening" }
-  }
+  { id: 'demo_fever_01', text: 'Demo reference: Document the duration and measured temperature of fever. Record warning symptoms and ask a clinician to review the assessment.', metadata: { source: 'ClinicAI synthetic demo note', condition: 'Fever' } },
+  { id: 'demo_allergy_01', text: 'Demo reference: Before finalizing a medication list, compare each drug with the patient allergy record. Any uncertain match needs clinician review.', metadata: { source: 'ClinicAI synthetic demo note', condition: 'Allergy documentation' } },
+  { id: 'demo_followup_01', text: 'Demo reference: A structured consultation note includes chief complaint, symptoms, relevant history, reviewed medicines and follow-up.', metadata: { source: 'ClinicAI synthetic demo note', condition: 'Documentation' } }
 ];
 
 async function seed() {
@@ -67,4 +57,4 @@ async function seed() {
   console.log("Seeding complete! Medical Knowledge Base is now live in 'clinical-wisdom' namespace.");
 }
 
-seed().catch(console.error);
+seed().catch(error => { console.error(error); process.exitCode = 1; });

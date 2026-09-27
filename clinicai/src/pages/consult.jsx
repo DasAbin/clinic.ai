@@ -8,7 +8,6 @@ import FlagsPanel from '@/components/FlagsPanel';
 import useVoiceRecorder from '@/hooks/useVoiceRecorder';
 import RAGChatbot from '@/components/RAGChatbot';
 import { transcribeAudio, extractStructured, saveSession, getPatientProfile } from '../../contract';
-import QRCode from 'react-qr-code';
 import { generatePatientPDF } from '@/utils/generatePatientPDF';
 
 export default function ConsultPage() {
@@ -22,7 +21,6 @@ export default function ConsultPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [isEditingData, setIsEditingData] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
-  const [savedSessionId, setSavedSessionId] = useState(null);
   const [patientProfile, setPatientProfile] = useState(null);
 
   useEffect(() => {
@@ -90,8 +88,7 @@ export default function ConsultPage() {
 
   const handleSave = async () => {
     try {
-      const saved = await saveSession(patientId || 'P12345', structuredData);
-      setSavedSessionId(saved.id);
+      await saveSession(patientId || 'P12345', structuredData);
       setIsSaved(true);
       alert('Session saved successfully!');
       setIsEditingData(false);
@@ -99,8 +96,6 @@ export default function ConsultPage() {
       alert('Failed to save session');
     }
   };
-
-  const reportUrl = typeof window !== 'undefined' ? `${window.location.origin}/report/${savedSessionId}` : '';
 
   return (
     <div className="min-h-screen bg-white flex flex-col font-sans antialiased text-black">
@@ -147,18 +142,6 @@ export default function ConsultPage() {
           </button>
         </div>
       </nav>
-      {savedSessionId && (
-        <div className="px-8 py-4 border-b-[0.5px] border-black bg-white">
-          <div className="inline-flex flex-col items-center gap-2 border-[0.5px] border-black p-4">
-            <QRCode value={reportUrl} size={96} />
-            <p className="text-xs text-gray-700">Scan to share with patient</p>
-            <a href={reportUrl} target="_blank" rel="noreferrer" className="text-xs underline break-all">
-              {reportUrl}
-            </a>
-          </div>
-        </div>
-      )}
-
       <main className="flex-1 max-w-none w-full grid grid-cols-1 lg:grid-cols-12">
         {/* Left Column: Recording & Output */}
         <div className="lg:col-span-8 p-12 space-y-12 border-r-[0.5px] border-black overflow-y-auto">

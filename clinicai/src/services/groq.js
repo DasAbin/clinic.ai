@@ -65,14 +65,14 @@ PRESCRIPTION PRECISION:
 RESILIENCE RULES:
 1. BACKGROUND NOISE: Ignore linguistic 'noise'. Prioritize clinical logic.
 2. AMBIGUITY: Check PATIENT HISTORY for "old medicine" references.
-3. PHONETIC SAFETY: Use MEDICAL CONTEXT (ICMR) to resolve similar drug names. IF A WORD SOUNDS LIKE A COMMON NOUN OR NON-MEDICAL PHRASE BUT IS IN A PRESCRIPTION CONTEXT, RECOVER THE MEDICAL TERM (e.g., "Citrus" or "Saturation" -> "Cetirizine", "cup of syrup" -> "Cough Syrup", "Amlo" -> "Amlodipine").
-4. PHARMACOLOGICAL SUGGESTIONS: Based on the diagnosis and symptoms, suggest 2-3 clinically relevant alternative medicines, adjunct therapies, or OTC supplements. STRICTLY FORBIDDEN: Do not suggest management steps or guidelines. ONLY suggest actual medications/drugs. Output the plain drug name in the 'label' field. Ensure the 'reason' field explains the specific medical relevance to the current session.
+3. PHONETIC SAFETY: Do not guess a medicine from similar-sounding words. If drug identity, dose, or timing is unclear, flag it for clinician review rather than inventing details.
+4. Do not suggest alternative medications or treatments. Set possible_suggestions to an empty array.
 5. SAFETY AUDIT: Compare new medications against PATIENT PROFILE (Allergies/Conditions). If a conflict exists (e.g., prescribing a drug the patient is allergic to), set "flag": true for that medication and add a clear warning in the 'flags' array.`
       },
       {
         role: "user",
         content: `
-        MEDICAL CONTEXT (ICMR Guidelines):
+        RETRIEVED DEMONSTRATION REFERENCES (not verified guidelines):
         ${medicalContext}
 
         PATIENT PROFILE:
@@ -90,7 +90,7 @@ RESILIENCE RULES:
         `
       }
     ],
-    model: "llama-3.3-70b-versatile",
+    model: "openai/gpt-oss-20b",
     response_format: { type: "json_object" }
   });
 
@@ -116,7 +116,7 @@ export async function queryRAGGroq(patientId, query, historyContext) {
         `
       }
     ],
-    model: "llama-3.3-70b-versatile"
+    model: "openai/gpt-oss-20b"
   });
 
   return completion.choices[0].message.content;

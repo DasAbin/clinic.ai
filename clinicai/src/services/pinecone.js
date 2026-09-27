@@ -26,7 +26,7 @@ export async function queryMedicalKB(vector, topK = 3) {
   const data = await response.json();
   return data.matches.map(match => ({
     text: match.metadata.text,
-    source: match.metadata.source || 'Standard Guidelines',
+    source: match.metadata.source || 'Unverified reference',
     score: match.score
   }));
 }

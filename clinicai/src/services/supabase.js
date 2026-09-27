@@ -1,15 +1,15 @@
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+const supabaseServerKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-if (!supabaseUrl || !supabaseAnonKey) {
+if (!supabaseUrl || !supabaseServerKey) {
   console.warn("⚠️ Clinical DB Credentials Missing. API routes will fail.");
 }
 
 function getSupabase() {
-  if (!supabaseUrl || !supabaseAnonKey) throw new Error('Supabase is not configured');
-  return createClient(supabaseUrl, supabaseAnonKey);
+  if (!supabaseUrl || !supabaseServerKey) throw new Error('Supabase is not configured');
+  return createClient(supabaseUrl, supabaseServerKey);
 }
 
 export async function saveSession(patientId, sessionData) {
