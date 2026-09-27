@@ -22,9 +22,10 @@ PINECONE_API_KEY=
 PINECONE_HOST=
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
 ```
 
-The application assumes an existing Pinecone index with 768-dimensional Gemini embeddings and namespace `clinical-wisdom`, and Supabase tables `patients` and `sessions`. It does **not** create either resource or seed production medical references automatically. Missing credentials allow the UI to render but prevent the clinical pipeline from running. Do not put a Supabase service-role key into `NEXT_PUBLIC_` variables or expose it to the browser. The included `mock/` JSON is sample data, not evidence of model accuracy.
+Run `sql/001_clinicai.sql` in a fresh Supabase SQL editor and `node scripts/seed_medical_kb.js` to load three synthetic demo references. The application assumes an existing Pinecone index with 768-dimensional Gemini embeddings and namespace `clinical-wisdom`, and Supabase tables `patients` and `sessions`. It does **not** create the cloud resources or seed verified medical references automatically. Missing credentials allow the UI to render but prevent the clinical pipeline from running. Do not put a Supabase service-role key into `NEXT_PUBLIC_` variables or expose it to the browser. The included `mock/` JSON is sample data, not evidence of model accuracy.
 
 ## Workflow
 
@@ -35,7 +36,7 @@ The application assumes an existing Pinecone index with 768-dimensional Gemini e
 
 ### Data and safety limitations
 
-- No authentication, clinician authorization, patient consent flow, de-identification, audit trail, or access control is implemented here. The patient-ID lookup must not be deployed with real patient records without authentication, access controls, and reviewed RLS policies. The unauthenticated report endpoint returns 403. Never use a service-role key in a public report endpoint.
-- Medication and allergy checks are prompt-based, not deterministic validation. Suggested alternatives are not approved prescriptions. The apparent confidence label is a model output, not a calibrated probability.
+- No authentication, clinician authorization, patient consent flow, de-identification or audit trail is implemented here. The schema enables RLS without public policies, and the server uses a privileged key to reach the tables. The patient-ID lookup must not be deployed with real patient records without authentication, access controls, and reviewed RLS policies. The unauthenticated report endpoint returns 403. Never use a service-role key in a public report endpoint.
+- Medication and allergy checks are prompt-based, not deterministic validation. The model is told not to suggest alternative medication. The apparent confidence label is a model output, not a calibrated probability.
 - The small hand-seeded knowledge base has no provenance guarantees; retrieval is top-3 over a single embedding of the entire transcript. References and generated answers need independent clinical review.
-- Whisper is configured for English in the code. Hindi-English and other code-mixed consultations have not been measured for accuracy. Supabase schema, third-party model API responses, and the whole recording-to-save workflow require integration tests with safe synthetic data in a configured environment.
+- Whisper is configured for English in the code. Hindi-English and other code-mixed consultations have not been measured for accuracy. A single synthetic API integration check succeeded for registration, extraction, saving, history and RAG. This is not clinical validation. Browser microphone-to-save and spoken audio transcription accuracy remain untested.
