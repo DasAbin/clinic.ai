@@ -35,10 +35,10 @@ export default function Home() {
         <div className="space-y-4">
            <div className="flex items-center space-x-2">
               <div className="w-2 h-2 bg-white animate-pulse"></div>
-              <span className="text-[10px] font-black uppercase tracking-widest">System Operational</span>
+              <span className="text-[10px] font-black uppercase tracking-widest">Seminar Prototype</span>
            </div>
            <p className="text-[9px] font-light text-gray-500 uppercase tracking-widest">
-             Powered by Groq Whisper Turbo & Llama 3.3 Versatile.
+             Powered by Groq Whisper Turbo & GPT-OSS 20B.
            </p>
         </div>
 
