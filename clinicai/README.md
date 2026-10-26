@@ -40,3 +40,7 @@ Run `sql/001_clinicai.sql` in a fresh Supabase SQL editor and `node scripts/seed
 - Medication and allergy checks are prompt-based, not deterministic validation. The model is told not to suggest alternative medication. The apparent confidence label is a model output, not a calibrated probability.
 - The small hand-seeded knowledge base has no provenance guarantees; retrieval is top-3 over a single embedding of the entire transcript. References and generated answers need independent clinical review.
 - Whisper is configured for English in the code. Hindi-English and other code-mixed consultations have not been measured for accuracy. A single synthetic API integration check succeeded for registration, extraction, saving, history and RAG. This is not clinical validation. Browser microphone-to-save and spoken audio transcription accuracy remain untested.
+
+## Protected seminar hosting
+
+The seminar deployment must keep Vercel Authentication enabled for **All Deployments**, including production domains. Use only synthetic data. Deployment protection is a demo access gate, not clinician or per-patient authorization. Server secrets belong in server-only environment variables, never in NEXT_PUBLIC variables. The deployment branch changes only prototype labels and this hosting note; it does not fix the measured medication-frequency failure.
