@@ -124,7 +124,7 @@ export default function Home() {
       </div>
       
       {/* Newspaper Footer Decoration */}
-      <div className="fixed bottom-8 right-8 hidden lg:block">
+      <div className="hidden">
          <p className="text-[10px] font-black uppercase tracking-[0.8em] text-black">
             ClinicAI System v1.0
          </p>

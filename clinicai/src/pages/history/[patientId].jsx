@@ -117,7 +117,7 @@ export default function HistoryPage() {
              <div className="p-6 border-[0.5px] border-black relative">
                 <span className="absolute -top-3 left-4 bg-white px-2 text-[9px] font-black uppercase tracking-widest">Doctor Assist</span>
                 <p className="text-xs font-light leading-relaxed italic antialiased text-gray-800">
-                  This patient has documented history of persistent symptoms in previous sessions. Use the Neural Interface to cross-reference past medication efficacy before proceeding with new entries.
+                  Review any saved sessions above before a new consultation. No prior symptoms or medication outcomes should be assumed when the history is empty.
                 </p>
              </div>
           </div>
